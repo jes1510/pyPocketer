@@ -201,8 +201,8 @@ class MainWindow(wx.Frame):
 	self.diameterBox.SetValue('.75')
 	self.overlapBox.SetValue('50')	
 	self.liftBox.SetValue('1.0')
-	self.finalDepthBox.SetValue('.125')
-	self.stepDepthBox.SetValue('.125')
+	self.finalDepthBox.SetValue('-0.125')
+	self.stepDepthBox.SetValue('0.125')
 	self.ofBox.SetValue('table.ngc')	
         self.unitsBox.SetValue('Imperial')
         self.directionBox.SetValue('Y')
@@ -224,9 +224,7 @@ class MainWindow(wx.Frame):
 	global directionList
 	global preferredDirection
 	preferredDirection = directionList[e.GetSelection()]
-	print preferredDirection
-        
-        
+	print preferredDirection        
 	
     def showComError(self) :     #	Can't open COM port
         dlg = wx.MessageDialog(self, "Could not open COM port!", 'Error!', wx.OK | wx.ICON_ERROR)  
@@ -267,6 +265,7 @@ class MainWindow(wx.Frame):
       global header   
       global x
       global y
+      global z
       global preferredDirection
       
       try :
@@ -302,46 +301,57 @@ class MainWindow(wx.Frame):
       of.write('f' + feedRate + '\n')      
       of.write('G0 z' + str(zMax) + '\n') 
       
-     
-      if preferredDirection == 'Y' :	
-	xSteps = self.drange(float(diameter) * overlap,xMax, float(diameter) * overlap) 
-	idx = 0
-	for i in range(0,len(xSteps)):	
-	  idx = idx + 1
-	  of.write('G0 y' + str(yMax) + '\n') 
-	  
-	  try :
-	    of.write('G0 x' + str(xSteps[idx]) + '\n')
-	    of.write('G0 y0\n')	
+      z = 0 - stepValue
+      
+      while z > (maxDepth - stepValue)  :   
+	of.write('G0 z' + str(z) + '\n')
+	
+	if preferredDirection == 'Y' :	
+	  xSteps = self.drange(float(diameter) * overlap,xMax, float(diameter) * overlap) 
+	  idx = 0
+	  for i in range(0,len(xSteps)):	
 	    idx = idx + 1
-	    of.write('G0 x' + str(xSteps[idx]) + '\n' )
-	  except :	    
-	    of.write('G0 x' + str(xMax) + '\n')
-	    of.write('G0 y0\n')
-	    break
-	 
+	    of.write('G0 y' + str(yMax) + '\n') 
+	  
+	    try :
+	      of.write('G0 x' + str(xSteps[idx]) + '\n')
+	      of.write('G0 y0\n')	
+	      idx = idx + 1
+	      of.write('G0 x' + str(xSteps[idx]) + '\n' )
+	      
+	    
+	    except :	    
+	      of.write('G0 x' + str(xMax) + '\n')
+	      of.write('G0 y0\n')
+	      break 
+	   
   
-      if preferredDirection == 'X' : 
-	ySteps = self.drange(float(diameter) * overlap,yMax, float(diameter) * overlap) 
-	idx = 0
-	for i in range(0,len(ySteps)):	
-	  idx = idx + 1
-	  of.write('G0 x' + str(xMax) + '\n') 
-	  
-	  try :
-	    of.write('G0 y' + str(ySteps[idx]) + '\n')
-	    of.write('G0 x0\n')	
+	if preferredDirection == 'X' : 
+	  ySteps = self.drange(float(diameter) * overlap,yMax, float(diameter) * overlap) 
+	  idx = 0
+	  for i in range(0,len(ySteps)):	
 	    idx = idx + 1
-	    of.write('G0 y' + str(ySteps[idx]) + '\n' )
-	  except :	    
-	    of.write('G0 y' + str(yMax) + '\n')
-	    of.write('G0 x0\n')
-	    break
+	    of.write('G0 x' + str(xMax) + '\n') 
+	  
+	    try :
+	      of.write('G0 y' + str(ySteps[idx]) + '\n')
+	      of.write('G0 x0\n')	
+	      idx = idx + 1
+	      of.write('G0 y' + str(ySteps[idx]) + '\n' )
+	   
+	    except :	    
+	      of.write('G0 y' + str(yMax) + '\n')
+	      of.write('G0 x0\n')
+	      break
+	z -= abs(stepValue)
+	
       
       of.write('G0 z' + str(zMax) + '\n')
       of.write('G1 x0 y0\n')
       of.write(';	End of code\n')
       of.close()
+      
+  
       
     def drange (self, start, stop, step) :
       r = start
