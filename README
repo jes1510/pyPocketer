@@ -1,0 +1,49 @@
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+The programm will generate G-Code that will mill in the positive directions for X and Y.  The position of
+the tool is decremented for a pocket mill so it is assumed that the tool will move in the negative direction 
+for the Z axis.  The top of the workpiece is assumed to be the zero position.
+
+units:			Units of measurement.  Either Imperial (USA) or metric
+
+X Dimension:		X Dimension of area to be milled
+
+Y Dimension:		Y Dimension of area to be milled
+
+Tool Diameter:		Diameter of tool to be used for milling
+
+Percent overlap:	Amount each pass should overlap the previous pass.  Expressed in percentages.  
+			0 in this box will use no overlap
+
+Z Liftoff Height:	Height to lift Z axis that will clear entire work area
+
+Final depth:		Final depth of milled pocket. If this value is less than the Max Step Depth
+			then only one pass will be generated
+
+Max Step Depth:		Amount to decrement the Z axis for the milling motion
+
+Feed Rate:		Feedrate per minute per a standard "F" code.  Imches per minute for 
+			Imperial and mm per minute for metric
+
+Preferred Direction:	The program will generate code that will move on one long axis and increment on 
+			the shorter axis.  It is assumed that for a rectangular work area that the direction
+			preference should be on the longer axis and is calculated by the "Auto" value.  It
+			can be overridden by directly selecting an axis in the box.  Keep in mind that this may not
+			be particularly efficient but it may be desirable in some circumstances.
+
+Output Filename: 	Name of file to be written
+
+"Write to file button":	Takes all values and generates the G-Code which is then written to the file
+
