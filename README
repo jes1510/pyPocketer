@@ -16,7 +16,7 @@ The programm will generate G-Code that will mill in the positive directions for 
 the tool is decremented for a pocket mill so it is assumed that the tool will move in the negative direction 
 for the Z axis.  The top of the workpiece is assumed to be the zero position.
 
-units:			Units of measurement.  Either Imperial (USA) or metric
+units:			Units of measurement.  Either Imperial (USA) or metric (Rest of the world)
 
 X Dimension:		X Dimension of area to be milled
 
@@ -24,7 +24,7 @@ Y Dimension:		Y Dimension of area to be milled
 
 Tool Diameter:		Diameter of tool to be used for milling
 
-Percent overlap:	Amount each pass should overlap the previous pass.  Expressed in percentages.  
+Overlap %:		Amount each pass should overlap the previous pass.  Expressed in percentages.  
 			0 in this box will use no overlap.  Use more overlap for cleaner cuts
 
 Z Liftoff Height:	Height to lift Z axis that will clear entire work area
