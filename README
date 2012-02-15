@@ -25,7 +25,7 @@ Y Dimension:		Y Dimension of area to be milled
 Tool Diameter:		Diameter of tool to be used for milling
 
 Percent overlap:	Amount each pass should overlap the previous pass.  Expressed in percentages.  
-			0 in this box will use no overlap
+			0 in this box will use no overlap.  Use more overlap for cleaner cuts
 
 Z Liftoff Height:	Height to lift Z axis that will clear entire work area
 
@@ -42,6 +42,16 @@ Preferred Direction:	The program will generate code that will move on one long a
 			preference should be on the longer axis and is calculated by the "Auto" value.  It
 			can be overridden by directly selecting an axis in the box.  Keep in mind that this may not
 			be particularly efficient but it may be desirable in some circumstances.
+
+Use Tool Offset:	Calculates all moves so that the outside edge of the tool is within the specified X and Y 
+			coordinates.  If checked, the first move will be in the preferred direction for a distance
+			equal to the radius of the tool.  The tool will then be lowered into the workpiece.  This means 
+			that the outside edge of the pocket will be underneath the center of the cutting tool when
+			the G-Code is ran so zero will be at the edge of the pocket
+
+			If this option is not checked then an absolute tool path will be calculated that does not take
+			the tool size into account.  This will cause the pocket to be larger than the specified dimensions
+			by a quantity equal to the tool diameter.
 
 Output Filename: 	Name of file to be written
 

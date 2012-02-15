@@ -69,6 +69,7 @@ class MainWindow(wx.Frame):
         self.sizer10 = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer11 = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer12 = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer13 = wx.BoxSizer(wx.HORIZONTAL)
         self.rootSizer = wx.BoxSizer(wx.VERTICAL)                        
         self.statusBar = self.CreateStatusBar()                              # statusbar in the bottom of the window                                  
 
@@ -101,6 +102,9 @@ class MainWindow(wx.Frame):
         self.diameterLabel = wx.StaticText(mainPanel, 1, "Tool Diameter")
         self.diameterBox = wx.TextCtrl(self) 
         
+        #self.useOffsetLabel = wx.StaticText(mainPanel, 1, "Use Tool Offset")      
+        
+        
         self.overlapLabel = wx.StaticText(mainPanel, 1, "Percent Overlap")
         self.overlapBox = wx.TextCtrl(self)
         
@@ -122,6 +126,8 @@ class MainWindow(wx.Frame):
         self.ofLabel = wx.StaticText(mainPanel, 1, "Output filename:")
         self.ofBox = wx.TextCtrl(self)    
       
+	self.useOffsetBox = wx.CheckBox(mainPanel, 1, 'Use Tool Offset')
+      
         self.writeFileButton = wx.Button(mainPanel, -1, 'Write to file')
         
         #  Sizers.  Everything is on rootSizer; these are grouped in pairs for clarity       
@@ -136,6 +142,8 @@ class MainWindow(wx.Frame):
         
         self.sizer4.Add(self.diameterLabel, 1, wx.EXPAND)
         self.sizer4.Add(self.diameterBox, 1, wx.EXPAND) 
+        
+         
         
         self.sizer5.Add(self.overlapLabel, 1, wx.EXPAND)
         self.sizer5.Add(self.overlapBox, 1, wx.EXPAND)
@@ -156,10 +164,14 @@ class MainWindow(wx.Frame):
         self.sizer10.Add(self.directionLabel, 1, wx.EXPAND)
         self.sizer10.Add(self.directionBox, 1, wx.EXPAND) 
         
-        self.sizer11.Add(self.ofLabel, 1, wx.EXPAND)
-        self.sizer11.Add(self.ofBox, 1, wx.EXPAND)  
+        self.sizer11.Add(self.useOffsetBox, 1, wx.EXPAND)
         
-        self.sizer12.Add(self.writeFileButton, 1, wx.EXPAND)  
+        self.sizer12.Add(self.ofLabel, 1, wx.EXPAND)
+        self.sizer12.Add(self.ofBox, 1, wx.EXPAND)  
+        
+        
+        
+        self.sizer13.Add(self.writeFileButton, 1, wx.EXPAND)  
         
         self.rootSizer.Add(self.sizer1, 1, wx.EXPAND)
         self.rootSizer.Add(self.sizer2, 1, wx.EXPAND)
@@ -173,6 +185,7 @@ class MainWindow(wx.Frame):
         self.rootSizer.Add(self.sizer10, 1, wx.EXPAND)  
         self.rootSizer.Add(self.sizer11, 1, wx.EXPAND)
         self.rootSizer.Add(self.sizer12, 1, wx.EXPAND) 
+        self.rootSizer.Add(self.sizer13, 1, wx.EXPAND) 
 
 	#	Bind events to buttons
         self.Bind(wx.EVT_CLOSE, self.OnExit)
@@ -260,8 +273,15 @@ class MainWindow(wx.Frame):
 	overlap = float(self.overlapBox.GetValue())/100	
 	preferredDirection = directionList[max(self.directionBox.GetSelection(), 0)]	
 	
+	
+	
       except :
 	self.showValueError()
+	
+      if self.useOffsetBox.GetValue() :
+	offset = .5 * toolDiameter
+      else :
+	offset = 0
 
       if preferredDirection == 'Auto' :
 	if xMax > yMax :
@@ -281,6 +301,10 @@ class MainWindow(wx.Frame):
       of.write(';	Depth Step: ' + str(stepValue) + '\n')
       of.write(';	Milling Depth: ' + str(maxDepth) + '\n')
       of.write(';	Preferred Direction = ' + preferredDirection + '\n')
+      if offset :
+	of.write(';	Tool offset WAS calculated\n')
+      else :
+	of.write(';	Tool offset was NOT calculated\n')
       of.write(';\n')      
       of.write(';	Start of Code\n')
       of.write(';---------------------------------------\n;\n')
@@ -300,44 +324,51 @@ class MainWindow(wx.Frame):
       
       
       while z > (maxDepth - stepValue)  :   
-	of.write('G0 z' + str(z) + '\n')
+		  
 	
 	if preferredDirection == 'Y' :	
+	  if offset :
+	    of.write('G0 y' + str(offset) + '; Offset for tool\n')
+	    
+	  of.write('G0 z' + str(z) + '\n')
 	  xSteps = self.drange(float(diameter) * overlap,xMax, float(diameter) * overlap) 
 	  idx = 0
 	  for i in range(0,len(xSteps)):	
 	    idx = idx + 1
-	    of.write('G0 y' + str(yMax) + '\n') 
+	    of.write('G0 y' + str(yMax - offset) + '\n') 
 	  
 	    try :
 	      of.write('G0 x' + str(xSteps[idx]) + '\n')
-	      of.write('G0 y0\n')	
+	      of.write('G0 y' + str(0 + offset) + '\n')	
 	      idx = idx + 1
 	      of.write('G0 x' + str(xSteps[idx]) + '\n' )
 	      
 	    
 	    except :	    
-	      of.write('G0 x' + str(xMax) + '\n')
-	      of.write('G0 y0\n')
+	      of.write('G0 x' + str(xMax - offset) + '\n')
+	      of.write('G0 y' + str(0 + offset) + '\n')
 	      break 
 	   
   
 	if preferredDirection == 'X' : 
+	  if offset :
+	    of.write('G0 x' + str(offset) + ' ; Offset for tool\n')
+	  of.write('G0 z' + str(z) + '\n')
 	  ySteps = self.drange(float(diameter) * overlap,yMax, float(diameter) * overlap) 
 	  idx = 0
 	  for i in range(0,len(ySteps)):	
 	    idx += 1
-	    of.write('G0 x' + str(xMax) + '\n') 
+	    of.write('G0 x' + str(xMax - offset) + '\n') 
 	  
 	    try :
 	      of.write('G0 y' + str(ySteps[idx]) + '\n')
-	      of.write('G0 x0\n')	
+	      of.write('G0 x' + str(0 + offset) + '\n')	
 	      idx = idx + 1
 	      of.write('G0 y' + str(ySteps[idx]) + '\n' )
 	   
 	    except :	    
 	      of.write('G0 y' + str(yMax) + '\n')
-	      of.write('G0 x0\n')
+	      of.write('G0 x' + str(0 + offset) + '\n')
 	      break
 	      
 	z -= abs(stepValue)	# Decrement the Z axis and do it all again if needed
