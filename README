@@ -46,6 +46,9 @@ Preferred Direction:	The program will generate code that will move on one long a
 Use Tool Offset:
 Calculates all moves so that the outside edge of the tool is within the specified X and Y coordinates.  If checked, the first move will be in the preferred direction for a distance equal to the radius of the tool.  The tool will then be lowered into the workpiece.  This means that the outside edge of the pocket will be underneath the center of the cutting tool when the G-Code is ran so zero will be at the edge of the pocket If this option is not checked then an absolute tool path will be calculated that does not take the tool size into account.  This will cause the pocket to be larger than the specified dimensions by a quantity equal to the tool diameter.
 
+Use Pocketing:
+If not checked then the tool will just mill a square to the defined depth.  This may be useful for just cutting squares.  If checked then the tool will run a complete pocketing operation.
+
 Output Filename: 
 Name of file to be written
 

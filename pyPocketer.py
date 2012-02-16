@@ -119,6 +119,7 @@ class MainWindow(wx.Frame):
         self.ofBox = wx.TextCtrl(self)    
       
 	self.useOffsetBox = wx.CheckBox(mainPanel, 1, 'Use Tool Offset')
+	self.enablePocketing = wx.CheckBox(mainPanel, 1, 'Enable Pocketing')
       
         self.writeFileButton = wx.Button(mainPanel, -1, 'Write to file')
         
@@ -154,6 +155,7 @@ class MainWindow(wx.Frame):
         self.sizer10.Add(self.directionBox, 1, wx.EXPAND) 
         
         self.sizer11.Add(self.useOffsetBox, 1, wx.EXPAND)
+        self.sizer11.Add(self.enablePocketing, 1, wx.EXPAND)
         
         self.sizer12.Add(self.ofLabel, 1, wx.EXPAND)
         self.sizer12.Add(self.ofBox, 1, wx.EXPAND) 
@@ -266,6 +268,10 @@ class MainWindow(wx.Frame):
       else :
 	offset = 0
 
+      pocketing =  self.enablePocketing.GetValue()
+      
+     
+	
       if preferredDirection == 'Auto' :
 	if xMax > yMax :
 	  preferredDirection = 'X'
@@ -307,55 +313,73 @@ class MainWindow(wx.Frame):
       
       while z > (maxDepth - stepValue)  : 	
 	if preferredDirection == 'Y' :	
+	
 	  if offset :
-	    of.write('G0 y' + str(offset) + '; Offset for tool\n')
-	    
+	    of.write('G1 y' + str(offset) + ' x' + str(offset) + '; Offset for tool\n') 
+	 
 	  of.write('G0 z' + str(z) + '\n')
-	  xSteps = self.drange(float(diameter) * overlap,xMax, float(diameter) * overlap) 
-	  idx = 0
-	  for i in range(0,len(xSteps)):	
-	    idx = idx + 1
-	    of.write('G0 y' + str(yMax - offset) + '\n') 
 	  
-	    try :
-	      of.write('G0 x' + str(xSteps[idx]) + '\n')
-	      of.write('G0 y' + str(0 + offset) + '\n')	
+	  # Start a profile operation first
+	  of.write('G0 y' + str(yMax - offset) + '\n') 
+	  of.write('G0 x' + str(xMax - offset) + '\n')
+	  of.write('G0 y' + str(offset) + '\n') 
+	  of.write('G0 x' + str(offset) + '\n')
+	 
+	  if pocketing:
+	    print "Pocket it!"
+	    xSteps = self.drange(float(diameter) * overlap,xMax, float(diameter) * overlap) 
+	    idx = 0
+	    for i in range(0,len(xSteps)):	
 	      idx = idx + 1
-	      of.write('G0 x' + str(xSteps[idx]) + '\n' )
+	      of.write('G0 y' + str(yMax - offset) + '\n') 
+	  
+	      try :
+		of.write('G0 x' + str(xSteps[idx]) + '\n')
+		of.write('G0 y' + str(0 + offset) + '\n')	
+		idx = idx + 1
+		of.write('G0 x' + str(xSteps[idx]) + '\n' )
 	      
 	    
-	    except :	    
-	      of.write('G0 x' + str(xMax - offset) + '\n')
-	      of.write('G0 y' + str(0 + offset) + '\n')
-	      break 
+	      except :	    
+		of.write('G0 x' + str(xMax - offset) + '\n')
+		of.write('G0 y' + str(0 + offset) + '\n')
+		break 
 	   
   
 	if preferredDirection == 'X' : 
 	  if offset :
-	    of.write('G0 x' + str(offset) + ' ; Offset for tool\n')
+	    of.write('G0 x' + str(offset) + ' y' + str(offset) + ' ; Offset for tool\n')
 	  of.write('G0 z' + str(z) + '\n')
-	  ySteps = self.drange(float(diameter) * overlap,yMax, float(diameter) * overlap) 
-	  idx = 0
-	  for i in range(0,len(ySteps)):	
-	    idx += 1
-	    of.write('G0 x' + str(xMax - offset) + '\n') 
 	  
-	    try :
-	      of.write('G0 y' + str(ySteps[idx]) + '\n')
-	      of.write('G0 x' + str(0 + offset) + '\n')	
-	      idx = idx + 1
-	      of.write('G0 y' + str(ySteps[idx]) + '\n' )
+	  of.write('G0 x' + str(xMax - offset) + '\n') 
+	  of.write('G0 y' + str(yMax - offset) + '\n')
+	  of.write('G0 x' + str(offset) + '\n') 
+	  of.write('G0 y' + str(offset) + '\n')
+	  
+	  
+	  if pocketing :	  
+	    ySteps = self.drange(float(diameter) * overlap,yMax, float(diameter) * overlap) 
+	    idx = 0
+	    for i in range(0,len(ySteps)):	
+	      idx += 1
+	      of.write('G0 x' + str(xMax - offset) + '\n') 
+	  
+	      try :
+		of.write('G0 y' + str(ySteps[idx]) + '\n')
+		of.write('G0 x' + str(0 + offset) + '\n')	
+		idx = idx + 1
+		of.write('G0 y' + str(ySteps[idx]) + '\n' )
 	   
-	    except :	    
-	      of.write('G0 y' + str(yMax) + '\n')
-	      of.write('G0 x' + str(0 + offset) + '\n')
-	      break
+	      except :	    
+		of.write('G0 y' + str(yMax) + '\n')
+		of.write('G0 x' + str(0 + offset) + '\n')
+		break
 	      
 	z -= abs(stepValue)	# Decrement the Z axis and do it all again if needed
 	
       
-      of.write('G0 z' + str(zMax) + '\n')
-      of.write('G1 x0 y0\n')
+      of.write('G0 z' + str(zMax) + '; Pull out of workpiece\n')
+      of.write('G1 x' + str(offset) + ' y' + str(offset) + '; Go home\n')
       of.write(';	End of code\n')
       of.close()
       self.showFileWritten()      
