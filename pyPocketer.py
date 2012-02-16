@@ -315,7 +315,7 @@ class MainWindow(wx.Frame):
 	if preferredDirection == 'Y' :	
 	
 	  if offset :
-	    of.write('G1 y' + str(offset) + ' x' + str(offset) + '; Offset for tool\n') 
+	    of.write('G1 y' + str(offset) + ' x' + str(offset) + '\n') # offset for tool
 	 
 	  of.write('G0 z' + str(z) + '\n')
 	  
@@ -325,8 +325,7 @@ class MainWindow(wx.Frame):
 	  of.write('G0 y' + str(offset) + '\n') 
 	  of.write('G0 x' + str(offset) + '\n')
 	 
-	  if pocketing:
-	    print "Pocket it!"
+	  if pocketing:	    
 	    xSteps = self.drange(float(diameter) * overlap,xMax, float(diameter) * overlap) 
 	    idx = 0
 	    for i in range(0,len(xSteps)):	
@@ -348,7 +347,7 @@ class MainWindow(wx.Frame):
   
 	if preferredDirection == 'X' : 
 	  if offset :
-	    of.write('G0 x' + str(offset) + ' y' + str(offset) + ' ; Offset for tool\n')
+	    of.write('G0 x' + str(offset) + ' y' + str(offset) + '\n')
 	  of.write('G0 z' + str(z) + '\n')
 	  
 	  of.write('G0 x' + str(xMax - offset) + '\n') 
@@ -378,8 +377,8 @@ class MainWindow(wx.Frame):
 	z -= abs(stepValue)	# Decrement the Z axis and do it all again if needed
 	
       
-      of.write('G0 z' + str(zMax) + '; Pull out of workpiece\n')
-      of.write('G1 x' + str(offset) + ' y' + str(offset) + '; Go home\n')
+      of.write('G0 z' + str(zMax + maxDepth) + '\n')
+      of.write('G1 x' + str(offset) + ' y' + str(offset) + '\n')
       of.write(';	End of code\n')
       of.close()
       self.showFileWritten()      
