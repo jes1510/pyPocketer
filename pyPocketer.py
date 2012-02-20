@@ -1,6 +1,6 @@
 '''
 Written by Jesse Merritt
-February 12, 2012
+February 20, 2012
 
    This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@ February 12, 2012
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Generates G-Code to re-surface a CNC table or mill pockets,  
+Generates G-Code to re-surface a CNC table or mill pockets.  
 
 The GUI requires WX.
 
