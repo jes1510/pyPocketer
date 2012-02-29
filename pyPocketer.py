@@ -379,6 +379,7 @@ class MainWindow(wx.Frame):
       
       of.write('G0 z' + str(zMax + maxDepth) + '\n')
       of.write('G1 x' + str(offset) + ' y' + str(offset) + '\n')
+      of.write('M02\n')
       of.write(';	End of code\n')
       of.close()
       self.showFileWritten()      
