@@ -96,6 +96,12 @@ class MainWindow(wx.Frame):
 
 		self.yLabel = wx.StaticText(mainPanel, 1, "Y Dimension:")
 		self.yBox = wx.TextCtrl(self) 
+		
+		self.xOffsetLabel = wx.StaticText(mainPanel, 1, "X Offset:")
+		self.xOffsetBox = wx.TextCtrl(self) 
+		
+		self.yOffsetLabel = wx.StaticText(mainPanel, 1, "Y Offset:")
+		self.yOffsetBox = wx.TextCtrl(self) 
 
 		self.diameterLabel = wx.StaticText(mainPanel, 1, "Tool Diameter")
 		self.diameterBox = wx.TextCtrl(self)		
@@ -120,10 +126,14 @@ class MainWindow(wx.Frame):
 
 		self.ofLabel = wx.StaticText(mainPanel, 1, "Output filename:")
 		self.ofBox = wx.TextCtrl(self)	
+		
+		self.objectLabel = wx.StaticText(mainPanel, 1, "Object Label:")
+		self.objectBox = wx.TextCtrl(self)	
 
-		self.useOffsetBox = wx.CheckBox(mainPanel, 1, 'Use Tool Offset')
+		self.usetoolOffsetBox = wx.CheckBox(mainPanel, 1, 'Use Tool Offset')
 		self.enablePocketing = wx.CheckBox(mainPanel, 1, 'Enable Pocketing')
 		self.drillCorners = wx.CheckBox(mainPanel, 1, 'Drill Corners')
+		self.includeM2 = wx.CheckBox(mainPanel, 1, "Include M2")
 
 		self.writeFileButton = wx.Button(mainPanel, -1, 'Write to file')
 		self.copyClipboardButton = wx.Button(mainPanel, -1, 'Copy to Clipboard')
@@ -135,8 +145,13 @@ class MainWindow(wx.Frame):
 		self.sizer2.Add(self.xLabel, 1, wx.EXPAND)
 		self.sizer2.Add(self.xBox, 1, wx.EXPAND)  
 
-		self.sizer3.Add(self.yLabel, 1, wx.EXPAND)
-		self.sizer3.Add(self.yBox, 1, wx.EXPAND)
+		self.sizer2.Add(self.yLabel, 1, wx.EXPAND)
+		self.sizer2.Add(self.yBox, 1, wx.EXPAND)
+		
+		self.sizer3.Add(self.xOffsetLabel, 1, wx.EXPAND)
+		self.sizer3.Add(self.xOffsetBox, 1, wx.EXPAND)
+		self.sizer3.Add(self.yOffsetLabel, 1, wx.EXPAND)
+		self.sizer3.Add(self.yOffsetBox, 1, wx.EXPAND)
 
 		self.sizer4.Add(self.diameterLabel, 1, wx.EXPAND)
 		self.sizer4.Add(self.diameterBox, 1, wx.EXPAND)   
@@ -159,14 +174,19 @@ class MainWindow(wx.Frame):
 		self.sizer10.Add(self.directionLabel, 1, wx.EXPAND)
 		self.sizer10.Add(self.directionBox, 1, wx.EXPAND) 
 
-		self.sizer11.Add(self.useOffsetBox, 1, wx.EXPAND)
+		self.sizer11.Add(self.usetoolOffsetBox, 1, wx.EXPAND)
 		self.sizer11.Add(self.enablePocketing, 1, wx.EXPAND)
 		self.sizer11.Add(self.drillCorners, 1, wx.EXPAND)
+		self.sizer11.Add(self.includeM2, 1, wx.EXPAND)
+		
 
 		self.sizer12.Add(self.ofLabel, 1, wx.EXPAND)
 		self.sizer12.Add(self.ofBox, 1, wx.EXPAND) 
 		
-
+		self.sizer12.Add(self.objectLabel, 1, wx.EXPAND)
+		self.sizer12.Add(self.objectBox, 1, wx.EXPAND) 
+		
+		
 		self.sizer13.Add(self.writeFileButton, 1, wx.EXPAND)  
 		self.sizer13.Add(self.copyClipboardButton, 1, wx.EXPAND)
 
@@ -210,7 +230,11 @@ class MainWindow(wx.Frame):
 		self.ofBox.SetValue('pocket.ngc')	
 		self.unitsBox.SetValue('Imperial')
 		self.directionBox.SetValue('Auto')
-		self.speedBox.SetValue('12')	   
+		self.speedBox.SetValue('12')	
+		self.xOffsetBox.SetValue('0')
+		self.yOffsetBox.SetValue('0')
+		self.objectBox.SetValue('Object 1')
+		self.includeM2.SetValue(True)
 
 		self.Layout()
 		self.Show(True)		
@@ -248,6 +272,7 @@ class MainWindow(wx.Frame):
 		
 	def onClipboard(self, e) :
 		# based on code from http://python.dzone.com/articles/wxpython-how-use-clipboard
+		tempf.seek(0)	
 		self.buildGCode() 
 		tempf.seek(0)			
 		self.dataObj = wx.TextDataObject()
@@ -262,11 +287,16 @@ class MainWindow(wx.Frame):
 		
 		
 	def writeFile(self, e) :
-		self.buildGCode()
+		tempf.seek(0)	
+		self.buildGCode() 
+		tempf.seek(0)	
 		filename = self.ofBox.GetValue()
-		of = open(filename, 'w')
+		of = open(filename, 'a')
+	
 		for i in tempf.readlines() :
-			of.write(i)
+			of.write(i)			
+		
+		of.write('\n\n\n')
 		of.close()
 		self.showFileWritten()	 
 			
@@ -286,17 +316,22 @@ class MainWindow(wx.Frame):
 			zMax = float(self.liftBox.GetValue())
 			maxDepth = float(self.finalDepthBox.GetValue())
 			stepValue = float(self.stepDepthBox.GetValue())	
-			overlap = float(self.overlapBox.GetValue())/100	
+			overlap = float(self.overlapBox.GetValue())/100		
+			xOffset = float(self.xOffsetBox.GetValue())
+			yOffset = float(self.yOffsetBox.GetValue())
+			
 			
 			preferredDirection = directionList[max(self.directionBox.GetSelection(), 0)]
+			
+		
 					
 		except :
 			self.showValueError()
 	
-		if self.useOffsetBox.GetValue() :
-			offset = .5 * toolDiameter
+		if self.usetoolOffsetBox.GetValue() :
+			toolOffset = .5 * toolDiameter
 		else :
-			offset = 0
+			toolOffset = 0
 
 		pocketing =  self.enablePocketing.GetValue()
 		if preferredDirection == 'Auto' :
@@ -306,9 +341,7 @@ class MainWindow(wx.Frame):
 			else :
 				preferredDirection = 'Y'  
 
-		#of = open(filename, 'w')
-	
-		tempf.write(header)
+		tempf.write(header)			
 		tempf.write(';	Units: ' + units + '\n')
 		tempf.write(';	Tool Diameter: ' + str(toolDiameter) + '\n')
 		tempf.write(';	Feedrate: ' + str(feedRate) + '\n')
@@ -318,13 +351,15 @@ class MainWindow(wx.Frame):
 		tempf.write(';	Depth Step: ' + str(stepValue) + '\n')
 		tempf.write(';	Milling Depth: ' + str(maxDepth) + '\n')
 		tempf.write(';	Preferred Direction = ' + preferredDirection + '\n')
-		if offset :
-			tempf.write(';	Tool offset WAS calculated\n')
+		if toolOffset :
+			tempf.write(';	Tool toolOffset WAS calculated\n')
 		else :
-			tempf.write(';	Tool offset was NOT calculated\n')
+			tempf.write(';	Tool toolOffset was NOT calculated\n')
 			tempf.write(';\n')	  
-			tempf.write(';	Start of Code\n')
-			tempf.write(';---------------------------------------\n;\n')
+			
+		
+		tempf.write(';\t' + self.objectBox.GetValue() + '\n')
+		tempf.write(';---------------------------------------\n;\n')
 
 		if units == 'Imperial' :
 			tempf.write('G20\n')
@@ -341,64 +376,67 @@ class MainWindow(wx.Frame):
 	  
 		while z > (maxDepth - stepValue)  : 	
 			if preferredDirection == 'Y' :	
-				if offset :
-					tempf.write('G0 y' + str(offset*2) + ' x' + str(offset*2) + '\n') # offset for tool
-					tempf.write('G1 z' + str(z) + '\n')
+				#if toolOffset :
+				tempf.write('G0 y' + str((toolOffset*2) + yOffset) + ' x' + str((toolOffset*2) + xOffset) + '\n') # toolOffset for tool
+				tempf.write('G1 z' + str(z) + '\n')
 
-					# Start a profile operation first
-					tempf.write('G1 y' + str(yMax - offset) + '\n') 
-					tempf.write('G1 x' + str(xMax - offset) + '\n')
-					tempf.write('G1 y' + str(offset) + '\n') 
-					tempf.write('G1 x' + str(offset) + '\n')
+				# Start a profile operation first
+				tempf.write('G1 y' + str((yMax - toolOffset) + yOffset) + '\n') 
+				tempf.write('G1 x' + str((xMax - toolOffset) + xOffset) + '\n')
+				tempf.write('G1 y' + str(toolOffset + yOffset) + '\n') 
+				tempf.write('G1 x' + str(toolOffset + xOffset) + '\n')
 
 				if pocketing:		
 					xSteps = self.drange(float(diameter) * overlap,xMax, float(diameter) * overlap) 
 					idx = 0
 					for i in range(0,len(xSteps)):	
-						idx = idx + 1
-						tempf.write('G1 y' + str(yMax - offset) + '\n') 
+						
+						tempf.write('G1 y' + str((yMax - toolOffset) + yOffset) + '\n') 
 
 						try :
-							tempf.write('G1 x' + str(xSteps[idx]) + '\n')
-							tempf.write('G1 y' + str(0 + offset) + '\n')	
+							tempf.write('G1 x' + str((xSteps[idx]) + xOffset) + '\n')
+							tempf.write('G1 y' + str(toolOffset + yOffset) + '\n')	
 							idx = idx + 1
-							tempf.write('G1 x' + str(xSteps[idx]) + '\n' )
+							tempf.write('G1 x' + str(x(Steps[idx]) + xOffset) + '\n' )
 					  
 		
 						except :		
-							tempf.write('G1 x' + str(xMax - offset) + '\n')
-							tempf.write('G1 y' + str(0 + offset) + '\n')
+							tempf.write('G1 x' + str((xMax - toolOffset) + xOffset) + '\n')
+							tempf.write('G1 y' + str(toolOffset + yOffset) + '\n')
 							break 
+						idx = idx + 1
 	   
   
 			if preferredDirection == 'X' : 
-				if offset :
-					tempf.write('G1 x' + str(offset) + ' y' + str(offset) + '\n')
+				#if toolOffset :
+				tempf.write('G1 x' + str(toolOffset + xOffset) + ' y' + str(toolOffset + yOffset) + '\n')
 					
 				tempf.write('G1 z' + str(z) + '\n')
-				tempf.write('G1 x' + str(xMax - offset) + '\n') 
-				tempf.write('G1 y' + str(yMax - offset) + '\n')
-				tempf.write('G1 x' + str(offset) + '\n') 
-				tempf.write('G1 y' + str(offset) + '\n')
+				tempf.write('G1 x' + str((xMax - toolOffset) + xOffset) + '\n') 
+				tempf.write('G1 y' + str((yMax - toolOffset) + yOffset) + '\n')
+				tempf.write('G1 x' + str(toolOffset + xOffset) + '\n') 
+				tempf.write('G1 y' + str(toolOffset + yOffset) + '\n')
 				
 				
 				if pocketing :	  
 					ySteps = self.drange(float(diameter) * overlap,yMax, float(diameter) * overlap) 
 					idx = 0
 					for i in range(0,len(ySteps)):	
-						idx += 1
-						tempf.write('G1 x' + str(xMax - offset) + '\n') 
+						
+						tempf.write('G1 x' + str((xMax - toolOffset) + xOffset) + '\n') 
 
 						try :
-							tempf.write('G1 y' + str(ySteps[idx]) + '\n')
-							tempf.write('G1 x' + str(0 + offset) + '\n')	
+							tempf.write('G1 y' + str(ySteps[idx] + yOffset) + '\n')
+							tempf.write('G1 x' + str(toolOffset + xOffset) + '\n')	
 							idx = idx + 1
-							tempf.write('G1 y' + str(ySteps[idx]) + '\n' )
+							tempf.write('G1 y' + str(ySteps[idx] + yOffset) + '\n' )
 
 						except :		
-							tempf.write('G1 y' + str(yMax) + '\n')
-							tempf.write('G1 x' + str(0 + offset) + '\n')
+							tempf.write('G1 y' + str(yMax + yOffset) + '\n')
+							tempf.write('G1 x' + str(toolOffset + xOffset) + '\n')
 							break
+						
+						idx += 1
 		  
 			z -= abs(stepValue)	# Decrement the Z axis and do it all again if needed
 	
@@ -413,9 +451,15 @@ class MainWindow(wx.Frame):
 	  
 		tempf.write('G0 z' + str(zMax) + '\n')
 		tempf.write('G0 x0 y0\n')
-		tempf.write('M02\n')
-		tempf.write(';	End of code\n')	
-		 
+		
+		if self.includeM2.GetValue() == True :
+			tempf.write('M02\n')
+			tempf.write(';	End of code\n')	
+		
+		else :
+			tempf.write(';	End of Section\n')
+			tempf.write(';---------------------------------------\n;\n')
+			 
   
 	  
 	def drange (self, start, stop, step) :	# range() doesn't work with floats so we do this instead
