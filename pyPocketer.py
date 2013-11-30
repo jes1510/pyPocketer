@@ -121,6 +121,7 @@ class MainWindow(wx.Frame):
 
 		self.useOffsetBox = wx.CheckBox(mainPanel, 1, 'Use Tool Offset')
 		self.enablePocketing = wx.CheckBox(mainPanel, 1, 'Enable Pocketing')
+		self.drillCorners = wx.CheckBox(mainPanel, 1, 'Drill Corners')
 
 		self.writeFileButton = wx.Button(mainPanel, -1, 'Write to file')
 
@@ -157,9 +158,11 @@ class MainWindow(wx.Frame):
 
 		self.sizer11.Add(self.useOffsetBox, 1, wx.EXPAND)
 		self.sizer11.Add(self.enablePocketing, 1, wx.EXPAND)
+		self.sizer11.Add(self.drillCorners, 1, wx.EXPAND)
 
 		self.sizer12.Add(self.ofLabel, 1, wx.EXPAND)
 		self.sizer12.Add(self.ofBox, 1, wx.EXPAND) 
+		
 
 		self.sizer13.Add(self.writeFileButton, 1, wx.EXPAND)  
 
@@ -251,6 +254,7 @@ class MainWindow(wx.Frame):
 			maxDepth = float(self.finalDepthBox.GetValue())
 			stepValue = float(self.stepDepthBox.GetValue())	
 			overlap = float(self.overlapBox.GetValue())/100	
+			
 			preferredDirection = directionList[max(self.directionBox.GetSelection(), 0)]
 					
 		except :
@@ -304,7 +308,7 @@ class MainWindow(wx.Frame):
 		while z > (maxDepth - stepValue)  : 	
 			if preferredDirection == 'Y' :	
 				if offset :
-					of.write('G0 y' + str(offset) + ' x' + str(offset) + '\n') # offset for tool
+					of.write('G0 y' + str(offset*2) + ' x' + str(offset*2) + '\n') # offset for tool
 					of.write('G1 z' + str(z) + '\n')
 
 					# Start a profile operation first
@@ -342,7 +346,8 @@ class MainWindow(wx.Frame):
 				of.write('G1 y' + str(yMax - offset) + '\n')
 				of.write('G1 x' + str(offset) + '\n') 
 				of.write('G1 y' + str(offset) + '\n')
-
+				
+				
 				if pocketing :	  
 					ySteps = self.drange(float(diameter) * overlap,yMax, float(diameter) * overlap) 
 					idx = 0
@@ -363,9 +368,26 @@ class MainWindow(wx.Frame):
 		  
 			z -= abs(stepValue)	# Decrement the Z axis and do it all again if needed
 	
+		if self.drillCorners.GetValue() :
+			#drillDiameter = self.drillBox.GetValue()
+			#of.write('G81 x' + str(offset*2) + ' y' + str(offset*2) + ' Z-'+ maxDepth +'\n') # offset for tool
+			of.write(';\tStart of corner drills\n')
+			
+			of.write('G81 x0' + ' y0' + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n') 
+			#of.write('G81 x0 y0' + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n') 
+			of.write('G81 x0' + ' y' + str(yMax) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')
+			of.write('G81 x' + str(xMax) + ' y' + str(yMax) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')
+			of.write('G81 x' + str(xMax) + ' y0' + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')	
+			
+			#of.write('G81 x' + str(offset) + ' y' + str(offset) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n') 
+			##of.write('G81 x0 y0' + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n') 
+			#of.write('G81 x' + str(offset) + ' y' + str(yMax - offset) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')
+			#of.write('G81 x' + str(xMax - offset) + ' y' + str(yMax - offset) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')
+			#of.write('G81 x' + str(xMax - offset) + ' y' + str(offset) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')		
+
 	  
-		of.write('G0 z' + str(zMax + maxDepth) + '\n')
-		of.write('G0 x' + str(offset) + ' y' + str(offset) + '\n')
+		of.write('G0 z' + str(zMax) + '\n')
+		of.write('G0 x0 y0\n')
 		of.write('M02\n')
 		of.write(';	End of code\n')
 		of.close()
