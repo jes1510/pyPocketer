@@ -442,10 +442,10 @@ class MainWindow(wx.Frame):
 	
 		if self.drillCorners.GetValue() :
 			tempf.write(';\tStart of corner drills\n')			
-			tempf.write('G81 x0' + ' y0' + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n') 
-			tempf.write('G81 x0' + ' y' + str(yMax) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')
-			tempf.write('G81 x' + str(xMax) + ' y' + str(yMax) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')
-			tempf.write('G81 x' + str(xMax) + ' y0' + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')	
+			tempf.write('G81 x' + str(xOffset) + ' y' + str(yOffset) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n') 
+			tempf.write('G81 x' + str(xOffset) + ' y' + str(yMax + yOffset) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')
+			tempf.write('G81 x' + str(xMax + xOffset) + ' y' + str(yMax + yOffset) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')
+			tempf.write('G81 x' + str(xMax + xOffset) + ' y' + str(yOffset) + ' R' + str(zMax) + ' Z'+ str(maxDepth) +'\n')	
 
 
 	  
