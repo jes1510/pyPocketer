@@ -319,6 +319,7 @@ class MainWindow(wx.Frame):
 			overlap = float(self.overlapBox.GetValue())/100		
 			xOffset = float(self.xOffsetBox.GetValue())
 			yOffset = float(self.yOffsetBox.GetValue())
+			jogFeedRate = feedRate
 			
 			
 			preferredDirection = directionList[max(self.directionBox.GetSelection(), 0)]
@@ -367,7 +368,7 @@ class MainWindow(wx.Frame):
 			f.write('G21\n')	  
 	  
 		tempf.write('f' + feedRate + '\n')	  
-		tempf.write('G0 z' + str(zMax) + '\n') 
+		tempf.write('G0 f'+ str(jogFeedRate) + '  z' + str(zMax) + '\n') 
 
 		z = 0 - stepValue
 
@@ -377,45 +378,45 @@ class MainWindow(wx.Frame):
 		while z > (maxDepth - stepValue)  : 	
 			if preferredDirection == 'Y' :	
 				#if toolOffset :
-				tempf.write('G0 y' + str((toolOffset*2) + yOffset) + ' x' + str((toolOffset*2) + xOffset) + '\n') # toolOffset for tool
-				tempf.write('G1 z' + str(z) + '\n')
+				tempf.write('G0 f'+ str(jogFeedRate) + '  y' + str((toolOffset*2) + yOffset) + ' x' + str((toolOffset*2) + xOffset) + '\n') # toolOffset for tool
+				tempf.write('G1 f'+ str(feedRate) + ' ' + '+ str(feedRate) + ' 'z' + str(z) + '\n')
 
 				# Start a profile operation first
-				tempf.write('G1 y' + str((yMax - toolOffset) + yOffset) + '\n') 
-				tempf.write('G1 x' + str((xMax - toolOffset) + xOffset) + '\n')
-				tempf.write('G1 y' + str(toolOffset + yOffset) + '\n') 
-				tempf.write('G1 x' + str(toolOffset + xOffset) + '\n')
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str((yMax - toolOffset) + yOffset) + '\n') 
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str((xMax - toolOffset) + xOffset) + '\n')
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str(toolOffset + yOffset) + '\n') 
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str(toolOffset + xOffset) + '\n')
 
 				if pocketing:		
 					xSteps = self.drange(float(diameter) * overlap,xMax, float(diameter) * overlap) 
 					idx = 0
 					for i in range(0,len(xSteps)):	
 						
-						tempf.write('G1 y' + str((yMax - toolOffset) + yOffset) + '\n') 
+						tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str((yMax - toolOffset) + yOffset) + '\n') 
 
 						try :
-							tempf.write('G1 x' + str((xSteps[idx]) + xOffset) + '\n')
-							tempf.write('G1 y' + str(toolOffset + yOffset) + '\n')	
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str((xSteps[idx]) + xOffset) + '\n')
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str(toolOffset + yOffset) + '\n')	
 							idx = idx + 1
-							tempf.write('G1 x' + str(x(Steps[idx]) + xOffset) + '\n' )
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str(x(Steps[idx]) + xOffset) + '\n' )
 					  
 		
 						except :		
-							tempf.write('G1 x' + str((xMax - toolOffset) + xOffset) + '\n')
-							tempf.write('G1 y' + str(toolOffset + yOffset) + '\n')
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str((xMax - toolOffset) + xOffset) + '\n')
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str(toolOffset + yOffset) + '\n')
 							break 
 						idx = idx + 1
 	   
   
 			if preferredDirection == 'X' : 
 				#if toolOffset :
-				tempf.write('G1 x' + str(toolOffset + xOffset) + ' y' + str(toolOffset + yOffset) + '\n')
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str(toolOffset + xOffset) + ' y' + str(toolOffset + yOffset) + '\n')
 					
-				tempf.write('G1 z' + str(z) + '\n')
-				tempf.write('G1 x' + str((xMax - toolOffset) + xOffset) + '\n') 
-				tempf.write('G1 y' + str((yMax - toolOffset) + yOffset) + '\n')
-				tempf.write('G1 x' + str(toolOffset + xOffset) + '\n') 
-				tempf.write('G1 y' + str(toolOffset + yOffset) + '\n')
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'z' + str(z) + '\n')
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str((xMax - toolOffset) + xOffset) + '\n') 
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str((yMax - toolOffset) + yOffset) + '\n')
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str(toolOffset + xOffset) + '\n') 
+				tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str(toolOffset + yOffset) + '\n')
 				
 				
 				if pocketing :	  
@@ -423,17 +424,17 @@ class MainWindow(wx.Frame):
 					idx = 0
 					for i in range(0,len(ySteps)):	
 						
-						tempf.write('G1 x' + str((xMax - toolOffset) + xOffset) + '\n') 
+						tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str((xMax - toolOffset) + xOffset) + '\n') 
 
 						try :
-							tempf.write('G1 y' + str(ySteps[idx] + yOffset) + '\n')
-							tempf.write('G1 x' + str(toolOffset + xOffset) + '\n')	
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str(ySteps[idx] + yOffset) + '\n')
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str(toolOffset + xOffset) + '\n')	
 							idx = idx + 1
-							tempf.write('G1 y' + str(ySteps[idx] + yOffset) + '\n' )
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str(ySteps[idx] + yOffset) + '\n' )
 
 						except :		
-							tempf.write('G1 y' + str(yMax + yOffset) + '\n')
-							tempf.write('G1 x' + str(toolOffset + xOffset) + '\n')
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'y' + str(yMax + yOffset) + '\n')
+							tempf.write('G1 f'+ str(feedRate) + ' ' + 'x' + str(toolOffset + xOffset) + '\n')
 							break
 						
 						idx += 1
@@ -449,8 +450,8 @@ class MainWindow(wx.Frame):
 
 
 	  
-		tempf.write('G0 z' + str(zMax) + '\n')
-		tempf.write('G0 x0 y0\n')
+		tempf.write('G0 f'+ str(jogFeedRate) + '  z' + str(zMax) + '\n')
+		tempf.write('G0 f'+ str(jogFeedRate) + '  x0 y0\n')
 		
 		if self.includeM2.GetValue() == True :
 			tempf.write('M02\n')
